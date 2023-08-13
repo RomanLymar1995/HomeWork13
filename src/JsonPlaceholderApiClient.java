@@ -1,51 +1,34 @@
-
-
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Scanner;
 
-
 public class JsonPlaceholderApiClient {
     private static final String BASE_URL = "https://jsonplaceholder.typicode.com";
 
+    public String getCommentsForLastPostAndSaveToFile(int userId) {
+        int lastPostId = getLastPostIdForUser(userId);
+        if (lastPostId == -1) {
+            return "No posts found for user " + userId;
+        }
 
-    public String createUser(String userDataJson) {
-        return executePostRequest(BASE_URL + "/users", userDataJson);
+        String commentsUrl = BASE_URL + "/posts/" + lastPostId + "/comments";
+        String commentsJson = executeGetRequest(commentsUrl);
+
+        String fileName = "user-" + userId + "-post-" + lastPostId + "-comments.json";
+        boolean saved = saveStringToFile(commentsJson, fileName);
+
+        if (saved) {
+            return "Comments saved to file: " + fileName;
+        } else {
+            return "Failed to save comments to file.";
+        }
     }
 
-
-    public String updateUser(String userDataJson) {
-        int userId = getUserIdFromJson(userDataJson);
-        return executePutRequest(BASE_URL + "/users/" + userId, userDataJson);
-    }
-
-
-    public void deleteUser(int userId) {
-        executeDeleteRequest(BASE_URL + "/users/" + userId);
-    }
-
-
-    public String getAllUsers() {
-        return executeGetRequest(BASE_URL + "/users");
-    }
-
-
-    public String getUserById(int userId) {
-        return executeGetRequest(BASE_URL + "/users/" + userId);
-    }
-
-
-    public String getUserByUsername(String username) {
-        return executeGetRequest(BASE_URL + "/users?username=" + username);
-    }
-
-
-    public String getCommentsForLastPostOfUser(int userId) {
+    private int getLastPostIdForUser(int userId) {
         String userPostsUrl = BASE_URL + "/users/" + userId + "/posts";
         String userPostsJson = executeGetRequest(userPostsUrl);
 
-        // Assuming the JSON response is an array of posts with "id" field
         int postId = -1;
         int lastPostId = -1;
         int lastIndex = -1;
@@ -58,6 +41,46 @@ public class JsonPlaceholderApiClient {
             }
         }
 
+        return lastPostId;
+    }
+
+    private boolean saveStringToFile(String content, String fileName) {
+        try (PrintWriter writer = new PrintWriter(fileName)) {
+            writer.print(content);
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public String createUser(String userDataJson) {
+        return executePostRequest(BASE_URL + "/users", userDataJson);
+    }
+
+    public String updateUser(String userDataJson) {
+        int userId = getUserIdFromJson(userDataJson);
+        return executePutRequest(BASE_URL + "/users/" + userId, userDataJson);
+    }
+
+    public void deleteUser(int userId) {
+        executeDeleteRequest(BASE_URL + "/users/" + userId);
+    }
+
+    public String getAllUsers() {
+        return executeGetRequest(BASE_URL + "/users");
+    }
+
+    public String getUserById(int userId) {
+        return executeGetRequest(BASE_URL + "/users/" + userId);
+    }
+
+    public String getUserByUsername(String username) {
+        return executeGetRequest(BASE_URL + "/users?username=" + username);
+    }
+
+    public String getCommentsForLastPostOfUser(int userId) {
+        int lastPostId = getLastPostIdForUser(userId);
         if (lastPostId == -1) {
             return "No posts found for user " + userId;
         }
@@ -66,7 +89,6 @@ public class JsonPlaceholderApiClient {
         return executeGetRequest(commentsUrl);
     }
 
-
     public String getOpenTasksForUser(int userId) {
         String tasksUrl = BASE_URL + "/users/" + userId + "/todos";
         String tasksJson = executeGetRequest(tasksUrl);
@@ -74,7 +96,6 @@ public class JsonPlaceholderApiClient {
         if (tasksJson.isEmpty()) {
             return "No tasks found for user " + userId;
         }
-
 
         StringBuilder openTasks = new StringBuilder();
         int lastIndex = -1;
@@ -103,8 +124,6 @@ public class JsonPlaceholderApiClient {
         return "Open tasks for user " + userId + ":\n" + openTasks.toString();
     }
 
-
-
     private String executeGetRequest(String url) {
         try {
             URL apiUrl = new URL(url);
@@ -122,7 +141,6 @@ public class JsonPlaceholderApiClient {
             return "GET request failed: " + e.getMessage();
         }
     }
-
 
     private String executePostRequest(String url, String data) {
         try {
@@ -174,7 +192,6 @@ public class JsonPlaceholderApiClient {
         }
     }
 
-
     private void executeDeleteRequest(String url) {
         try {
             URL apiUrl = new URL(url);
@@ -199,9 +216,9 @@ public class JsonPlaceholderApiClient {
             return scanner.hasNext() ? scanner.next() : "";
         }
     }
+
     private int getUserIdFromJson(String userDataJson) {
         try {
-
             int start = userDataJson.indexOf("\"id\":") + 5;
             int end = userDataJson.indexOf(",", start);
             if (end == -1) {
@@ -211,7 +228,6 @@ public class JsonPlaceholderApiClient {
             return Integer.parseInt(idStr);
         } catch (NumberFormatException | IndexOutOfBoundsException e) {
             e.printStackTrace();
-
             return -1;
         }
     }
