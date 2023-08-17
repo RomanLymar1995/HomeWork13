@@ -8,7 +8,7 @@ public class Task2 {
         JsonPlaceholderApiClient apiClient = new JsonPlaceholderApiClient();
 
         int userIdForComments = 3;
-        String commentsResult = apiClient.getCommentsForLastPostOfUser(userIdForComments);
+        String commentsResult = apiClient.getCommentsForLastPost(userIdForComments);
         System.out.println(commentsResult);
     }
 }

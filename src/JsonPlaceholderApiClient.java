@@ -6,52 +6,7 @@ import java.util.Scanner;
 public class JsonPlaceholderApiClient {
     private static final String BASE_URL = "https://jsonplaceholder.typicode.com";
 
-    public String getCommentsForLastPostAndSaveToFile(int userId) {
-        int lastPostId = getLastPostIdForUser(userId);
-        if (lastPostId == -1) {
-            return "No posts found for user " + userId;
-        }
-
-        String commentsUrl = BASE_URL + "/posts/" + lastPostId + "/comments";
-        String commentsJson = executeGetRequest(commentsUrl);
-
-        String fileName = "user-" + userId + "-post-" + lastPostId + "-comments.json";
-        boolean saved = saveStringToFile(commentsJson, fileName);
-
-        if (saved) {
-            return "Comments saved to file: " + fileName;
-        } else {
-            return "Failed to save comments to file.";
-        }
-    }
-
-    private int getLastPostIdForUser(int userId) {
-        String userPostsUrl = BASE_URL + "/users/" + userId + "/posts";
-        String userPostsJson = executeGetRequest(userPostsUrl);
-
-        int postId = -1;
-        int lastPostId = -1;
-        int lastIndex = -1;
-        while ((lastIndex = userPostsJson.indexOf("\"id\":", lastIndex + 1)) != -1) {
-            int startIndex = userPostsJson.indexOf(":", lastIndex) + 1;
-            int endIndex = userPostsJson.indexOf(",", lastIndex);
-            postId = Integer.parseInt(userPostsJson.substring(startIndex, endIndex).trim());
-            if (postId > lastPostId) {
-                lastPostId = postId;
-            }
-        }
-
-        return lastPostId;
-    }
-
-    private boolean saveStringToFile(String content, String fileName) {
-        try (PrintWriter writer = new PrintWriter(fileName)) {
-            writer.print(content);
-            return true;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
+    public JsonPlaceholderApiClient() {
     }
 
     public String createUser(String userDataJson) {
@@ -79,7 +34,7 @@ public class JsonPlaceholderApiClient {
         return executeGetRequest(BASE_URL + "/users?username=" + username);
     }
 
-    public String getCommentsForLastPostOfUser(int userId) {
+    public String getCommentsForLastPost(int userId) {
         int lastPostId = getLastPostIdForUser(userId);
         if (lastPostId == -1) {
             return "No posts found for user " + userId;
@@ -89,39 +44,24 @@ public class JsonPlaceholderApiClient {
         return executeGetRequest(commentsUrl);
     }
 
-    public String getOpenTasksForUser(int userId) {
-        String tasksUrl = BASE_URL + "/users/" + userId + "/todos";
-        String tasksJson = executeGetRequest(tasksUrl);
-
-        if (tasksJson.isEmpty()) {
-            return "No tasks found for user " + userId;
+    public boolean saveCommentsToFile(int userId) {
+        String comments = getCommentsForLastPost(userId);
+        if (comments.startsWith("No posts found")) {
+            return false;
         }
 
-        StringBuilder openTasks = new StringBuilder();
-        int lastIndex = -1;
-        while ((lastIndex = tasksJson.indexOf("\"completed\":", lastIndex + 1)) != -1) {
-            int startIndex = tasksJson.indexOf(":", lastIndex) + 1;
-            int endIndex = tasksJson.indexOf(",", lastIndex);
-            if (endIndex == -1) {
-                endIndex = tasksJson.indexOf("}", lastIndex);
-            }
-            boolean completed = Boolean.parseBoolean(tasksJson.substring(startIndex, endIndex).trim());
-            if (!completed) {
-                int taskIdStart = tasksJson.lastIndexOf("\"id\":", lastIndex);
-                int taskIdEnd = tasksJson.indexOf(",", taskIdStart);
-                if (taskIdEnd == -1) {
-                    taskIdEnd = tasksJson.indexOf("}", taskIdStart);
-                }
-                int taskId = Integer.parseInt(tasksJson.substring(taskIdStart + 5, taskIdEnd).trim());
-                openTasks.append("Task ID: ").append(taskId).append("\n");
-            }
-        }
+        int lastPostId = getLastPostIdForUser(userId);
+        String fileName = "user-" + userId + "-post-" + lastPostId + "-comments.json";
+        File file = new File(fileName);
 
-        if (openTasks.length() == 0) {
-            return "No open tasks found for user " + userId;
+        try (FileWriter writer = new FileWriter(file)) {
+            writer.write(comments);
+            writer.flush();
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
         }
-
-        return "Open tasks for user " + userId + ":\n" + openTasks.toString();
     }
 
     private String executeGetRequest(String url) {
@@ -230,5 +170,28 @@ public class JsonPlaceholderApiClient {
             e.printStackTrace();
             return -1;
         }
+    }
+
+    private int getLastPostIdForUser(int userId) {
+        String userPostsUrl = BASE_URL + "/users/" + userId + "/posts";
+        String userPostsJson = executeGetRequest(userPostsUrl);
+
+        int postId = -1;
+        int lastPostId = -1;
+        int lastIndex = -1;
+        while ((lastIndex = userPostsJson.indexOf("\"id\":", lastIndex + 1)) != -1) {
+            int startIndex = userPostsJson.indexOf(":", lastIndex) + 1;
+            int endIndex = userPostsJson.indexOf(",", lastIndex);
+            postId = Integer.parseInt(userPostsJson.substring(startIndex, endIndex).trim());
+            if (postId > lastPostId) {
+                lastPostId = postId;
+            }
+        }
+
+        return lastPostId;
+    }
+    public String getOpenTasksForUser(int userId) {
+        String tasksUrl = BASE_URL + "/users/" + userId + "/todos";
+        return executeGetRequest(tasksUrl);
     }
 }

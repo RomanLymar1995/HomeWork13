@@ -29,7 +29,7 @@ public class Main {
 
         // Завдання 2
         int userIdForComments = 3; // Задаємо ID користувача для отримання коментарів до останнього його посту
-        String commentsResult = apiClient.getCommentsForLastPostOfUser(userIdForComments);
+        String commentsResult = apiClient.getCommentsForLastPost(userIdForComments);
         System.out.println(commentsResult);
 
         // Завдання 3
