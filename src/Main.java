@@ -1,4 +1,3 @@
-
 public class Main {
     public static void main(String[] args) {
         JsonPlaceholderApiClient apiClient = new JsonPlaceholderApiClient();
@@ -27,14 +26,22 @@ public class Main {
         String userByUsernameJson = apiClient.getUserByUsername(usernameToRetrieve);
         System.out.println("User by username " + usernameToRetrieve + ": " + userByUsernameJson);
 
-        // Завдання 2
-        int userIdForComments = 3; // Задаємо ID користувача для отримання коментарів до останнього його посту
+
+        int userIdForComments = 3;
         String commentsResult = apiClient.getCommentsForLastPost(userIdForComments);
         System.out.println(commentsResult);
 
-        // Завдання 3
-        int userIdForOpenTasks = 4; // Задаємо ID користувача для отримання відкритих задач
+
+        int userIdForOpenTasks = 4;
         String openTasksResult = apiClient.getOpenTasksForUser(userIdForOpenTasks);
         System.out.println(openTasksResult);
+
+
+        boolean savedComments = apiClient.saveCommentsToFile(userIdForComments);
+        if (savedComments) {
+            System.out.println("Comments were saved to a file.");
+        } else {
+            System.out.println("No comments to save or there was an error.");
+        }
     }
 }
